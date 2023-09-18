@@ -114,18 +114,73 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
+    @staticmethod
+    def check_if_float(string):
+        """
+        Checks if passed string is float
+        Example: latitude=37.773972 longitude=-122.431297
+        should be latitude=37773972 longitude=122431297
+        """
+
+        new_string = str(string).replace('.', '').strip('-')
+
+        # Check if all user input is numeric e.g 09393567
+        if new_string.isnumeric():
+            return True
+        else:
+            return False
+
     def do_create(self, args):
-        """ Create an object of any class"""
+        """
+        Create an object of any class
+        Command syntax: create <Class name> <param 1> <param 2> <param 3>...
+        Param syntax: <key name>=<value>
+        Value syntax:
+
+        String: "<value>" => starts with a double quote
+        any double quote inside the value must be escaped with a backslash \
+        all underscores _ must be replace by spaces .
+        Example: You want to set the string My little house to the attribute name, your command line must be name="My_little_house"
+        Float: <unit>.<decimal> => contains a dot .
+        Integer: <number> => default case
+        """
+        _args = args.split()
+
         if not args:
             print("** class name missing **")
             return
-        elif args not in HBNBCommand.classes:
+        # If param not in classes e.g create Person
+        elif _args[0] not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        new_instance = HBNBCommand.classes[args]()
+
+        new_instance = HBNBCommand.classes[_args[0]]()
+
+        # Looping through the rest of passed parameters
+        for parameter in _args[1:]:
+            if '=' in parameter:
+                key, value = parameter.split('=')
+
+                # Check if value is enclosed in double quotes
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1]  # Remove quotes
+
+                    # Replace underscores with spaces for string values
+                    value = value.replace('_', ' ')
+
+                    # Check if value is numeric or float
+                    if HBNBCommand.check_if_float(value):
+                        if '.' in value:
+                            value = float(value)
+                        else:
+                            value = int(value)
+
+                new_instance.__dict__[key] = value
+
         storage.save()
         print(new_instance.id)
         storage.save()
+        new_instance.save()
 
     def help_create(self):
         """ Help information for the create method """
