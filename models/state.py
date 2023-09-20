@@ -10,7 +10,7 @@ from sqlalchemy.orm import relationship
 import os
 
 
-class State(BaseModel):
+class State(BaseModel, Base):
     """ State class """
     # name = ""
     __tablename__ = 'states'
