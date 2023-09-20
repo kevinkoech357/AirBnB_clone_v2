@@ -44,20 +44,27 @@ class DBStorage:
 
     def all(self, cls=None):
         """
-        query all classes or specific one"""
-        allClasses = [User, Place, State, City, Amenity, Review]
+        query all classes or specific one
+        """
+        all_classes = [User, Place, State, City, Amenity, Review]
         result = {}
+
         if cls is not None:
+            if isinstance(cls, str):
+                cls = eval(cls)
+            table_name = cls.__table__.name
             for obj in self.__session.query(cls).all():
-                ClassName = obj.__class__.__name__
-                keyName = ClassName + "." + obj.id
-                result[keyName] = obj
+                class_name = obj.__class__.__name__
+                key_name = f"{class_name}.{obj.id}"
+                result[key_name] = obj
         else:
-            for clss in allClasses:
-                for obj in self.__session.query(clss).all():
-                    ClassName = obj.__class__.__name__
-                    keyName = ClassName + "." + obj.id
-                    result[keyName] = obj
+            for cls in all_classes:
+                table_name = cls.__table__.name
+                for obj in self.__session.query(cls).all():
+                    class_name = obj.__class__.__name__
+                    key_name = f"{class_name}.{obj.id}"
+                    result[key_name] = obj
+
         return result
 
     def new(self, obj):
