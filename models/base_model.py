@@ -7,6 +7,7 @@ from sqlalchemy import Column, String, DateTime
 
 Base = declarative_base()
 
+
 class BaseModel:
     """A base class for all hbnb models"""
 
@@ -20,9 +21,8 @@ class BaseModel:
             self.id = str(uuid.uuid4())
             self.created_at = datetime.now()
             self.updated_at = datetime.now()
-
         else:
-           if not kwargs.get('id'):
+            if not kwargs.get('id'):
                 kwargs['id'] = str(uuid.uuid4())
             kwargs['updated_at'] = datetime.now()
             kwargs['created_at'] = datetime.now()
