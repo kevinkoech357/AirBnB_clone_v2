@@ -1,6 +1,4 @@
-#!/usr/bin/python3
-
-from fabric.operations import local, run
+from fabric.api import local
 from datetime import datetime
 import os
 
@@ -23,6 +21,9 @@ def do_pack():
     result = local("tar -cvzf {}/{} {}".format(target_folder, archive_name, source_folder))
 
     if result.succeeded:
-        return "{}/{}".format(target_folder, archive_name)
+        archive_path = "{}/{}".format(target_folder, archive_name)
+        archive_size = os.path.getsize(archive_path)
+        print("web_static packed: {} -> {}Bytes".format(archive_path, archive_size))
+        return archive_path
     else:
         return None
