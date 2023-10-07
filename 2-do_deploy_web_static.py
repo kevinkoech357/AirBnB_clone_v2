@@ -7,17 +7,16 @@ Fabric script to deploy the web_static archive to web servers.
 
 from fabric.api import *
 import os
-
-env.user = 'ubuntu'
-env.hosts = ['34.207.188.213', '52.86.123.235']
+import argparse
 
 
-def do_deploy(archive_path):
+def do_deploy(archive_path, hosts):
     """
-    Distributes an archive to web servers and deploys it.
+    Distribute and deploy a web_static archive to web servers.
 
     Args:
         archive_path (str): The path to the archive file on the local machine.
+        hosts (list): List of hostnames or IP addresses to deploy to.
 
     Returns:
         bool: True if deployment is successful, False otherwise.
@@ -28,35 +27,42 @@ def do_deploy(archive_path):
         return False
 
     try:
-        archive_filename = os.path.basename(archive_path)
-        archive_no_ext = os.path.splitext(archive_filename)[0]
-        remote_tmp_path = "/tmp/{}".format(archive_filename)
-        remote_release_path = "/data/web_static/releases/{}/".format(
-            archive_no_ext)
+        # Loop through each host
+        for host in hosts:
+            env.host_string = host
 
-        # Upload the archive to /tmp/ on the web servers
-        put(archive_path, remote_tmp_path)
+            # Upload the archive to /tmp/ on the web server
+            remote_tmp_path = "/tmp/{}".format(os.path.basename(archive_path))
+            put(archive_path, remote_tmp_path)
 
-        # Create the release folder if it doesn't exist
-        run("mkdir -p {}".format(remote_release_path))
+            # Create the release folder if it doesn't exist
+            remote_release_path = "/data/web_static/releases/{}/".format(
+                os.path.splitext(os.path.basename(archive_path))[0])
+            run("mkdir -p {}".format(remote_release_path))
 
-        # Uncompress the archive to the release folder
-        run("tar -xzf {} -C {}".format(remote_tmp_path, remote_release_path))
+            # Uncompress the archive to the release folder
+            run("tar -xzf {} -C {}".format(
+                remote_tmp_path, remote_release_path))
 
-        # Delete the archive from the web server
-        run("rm {}".format(remote_tmp_path))
+            # Delete the archive from the web server
+            run("rm {}".format(remote_tmp_path))
 
-        # Move the contents to the proper location
-        run("mv {}web_static/* {}".format(
-            remote_release_path, remote_release_path))
+            # Use sudo to remove the existing images and styles directories
+            sudo("rm -rf {}/images".format(remote_release_path))
+            sudo("rm -rf {}/styles".format(remote_release_path))
 
-        # Delete the symbolic link /data/web_static/current
-        run("rm -rf /data/web_static/current")
+            # Move the contents to the proper location
+            sudo("mv {}/web_static/* {}".format(
+                remote_release_path, remote_release_path))
 
-        # Create a new symbolic link
-        run("ln -s {} /data/web_static/current".format(remote_release_path))
+            # Delete the old symbolic link /data/web_static/current
+            run("rm -rf /data/web_static/current")
 
-        print("New version deployed!")
+            # Create a new symbolic link to the deployed code
+            run("ln -s {} /data/web_static/current".format(
+                remote_release_path))
+
+        print("Deployment successful!")
         return True
 
     except Exception as e:
@@ -65,8 +71,19 @@ def do_deploy(archive_path):
 
 
 if __name__ == "__main__":
-    archive_path = "versions/web_static_20231007203211.tgz"
-    result = do_deploy(archive_path)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--identity", required=True,
+                        help="SSH identity file path")
+    parser.add_argument("-u", "--user", required=True, help="SSH username")
+    parser.add_argument("archive_path", help="Path to the archive file")
+    parser.add_argument("hosts", nargs='+', help="Hostnames or IP addresses")
+
+    args = parser.parse_args()
+
+    env.key_filename = args.identity
+    env.user = args.user
+
+    result = do_deploy(args.archive_path, args.hosts)
     if result:
         print("Deployment successful!")
     else:
