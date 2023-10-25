@@ -33,7 +33,7 @@ def hbnb():
 def show_text(text):
     """
     This function returns
-    HBNB when called.
+    text.
     """
     new_text = text.replace('_', ' ')
     return "C " + new_text
