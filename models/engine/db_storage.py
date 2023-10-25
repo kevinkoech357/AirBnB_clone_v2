@@ -80,3 +80,12 @@ class DBStorage:
         """delete from the current database session"""
         if obj:
             self.__session.delete(obj)
+
+
+    def close(self):
+        """
+        This function closes the
+        session after it's complete
+        """
+        self.__session.close()
+        self.reload()

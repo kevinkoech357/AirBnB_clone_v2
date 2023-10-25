@@ -22,3 +22,20 @@ class State(BaseModel, Base):
     if os.environ.get('HBNB_TYPE_STORAGE') == 'db':
         cities = relationship("City", backref="state",
                               cascade="all, delete-orphan")
+    else:
+        @property
+        def cities(self):
+            """
+            This method returns the list of City objects
+            from storage linked to the current State
+            """
+            from models import storage
+            from models.city import City
+
+            cities = storage.all(City)
+            keys = cities.keys()
+            temp = []
+            for key in keys:
+                if cities[key].state_id == self.id:
+                    temp.append(cities[key])
+            return temp
