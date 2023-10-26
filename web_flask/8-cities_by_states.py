@@ -22,7 +22,7 @@ def list_of_states():
     listing all states and their cities available.
     """
     states = storage.all(State).values()
-    states = sorted(states, key=get_state_name)
+    # states = sorted(states, key=get_state_name)
 
     return render_template('8-cities_by_states.html', states=states)
 
