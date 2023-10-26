@@ -12,7 +12,6 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from os import getenv
 
 
-
 class DBStorage:
     """Class Docs"""
 
@@ -81,7 +80,6 @@ class DBStorage:
         """delete from the current database session"""
         if obj:
             self.__session.delete(obj)
-
 
     def close(self):
         """
