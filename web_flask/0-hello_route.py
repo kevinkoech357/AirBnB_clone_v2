@@ -17,7 +17,7 @@ def greet_hbnb():
     This function returns
     Hello HBNB when called.
     """
-    return "Hello HBNB"
+    return "Hello HBNB!"
 
 
 if __name__ == '__main__':
